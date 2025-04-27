@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matsya Steno - Typing Tutor</title>
+    <style>
+        /* General Styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7fa;
+            color: #333;
+        }
+
+        header {
+            background-color: #004d00;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            font-size: 28px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        footer {
+            background-color: #004d00;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .container {
+            width: 80%;
+            margin: 40px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .timer, .result {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+
+        #testBox {
+            margin-top: 20px;
+        }
+
+        #typingText {
+            font-size: 22px;
+            line-height: 1.8;
+            word-wrap: break-word;
+            color: #555;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            font-size: 20px;
+            padding: 12px;
+            margin-top: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: border 0.3s ease;
+        }
+
+        textarea:focus {
+            border-color: #004d00;
+        }
+
+        button {
+            background-color: #004d00;
+            color: white;
+            padding: 12px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #003b00;
+        }
+
+        .highlight {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .incorrect {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .correction {
+            color: #007bff;
+        }
+
+        #submitBtn {
+            display: none;
+        }
+
+        #resetBtn {
+            display: none;
+            margin-top: 10px;
+        }
+
+        #typingText span {
+            transition: color 0.3s ease, font-weight 0.3s ease;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            font-size: 22px;
+            text-align: center;
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    Matsya Steno - Typing Tutor
+</header>
+
+<div class="container">
+    <div id="testBox">
+        <div class="timer" id="timer">Time: 0s</div>
+        <div id="typingText">
+            Type the following text: 
+            <p id="paragraphText">"rama rama rat te rat te biti re umariya ragukul nandan kab aaoge ragukul nandan kab aaoge daas ki khabariya"</p>
+        </div>
+        <textarea id="inputText" placeholder="Start typing here..." disabled></textarea>
+        <button id="startBtn" onclick="startTest()">Start Test</button>
+        <button id="submitBtn" onclick="submitTest()">Submit Test</button>
+        <button id="resetBtn" onclick="resetTest()">Reset Test</button>
+        <div id="result" class="result"></div>
+    </div>
+</div>
+
+<footer>
+    © 2025 Matsya Steno. All Rights Reserved.
+</footer>
+
+<script>
+    let startTime;
+    let timerInterval;
+    let typedText = "";
+    let isTestRunning = false;
+    let timeTaken = 0;
+    let wordsTyped = 0;
+    let testText = "rama rama rat te rat te biti re umariya ragukul nandan kab aaoge ragukul nandan kab aaoge daas ki khabariya";
+    let correctWords = [];
+
+    function startTest() {
+        // Start the test
+        isTestRunning = true;
+        document.getElementById('inputText').disabled = false;
+        document.getElementById('inputText').value = "";
+        document.getElementById('startBtn').style.display = "none";
+        document.getElementById('submitBtn').style.display = "inline-block";
+        document.getElementById('resetBtn').style.display = "inline-block";
+
+        startTime = new Date().getTime();
+        timeTaken = 0;
+        wordsTyped = 0;
+        correctWords = testText.split(' ');
+        updateTimer();
+        timerInterval = setInterval(updateTimer, 1000);
+        document.getElementById('inputText').focus();
+    }
+
+    function updateTimer() {
+        let timeElapsed = Math.floor((new Date().getTime() - startTime) / 1000);
+        timeTaken = timeElapsed;
+        document.getElementById('timer').textContent = "Time: " + timeElapsed + "s";
+    }
+
+    document.getElementById('inputText').addEventListener('input', function () {
+        typedText = this.value;
+        wordsTyped = typedText.split(' ').length;
+        updateTypingTextHighlight();
+    });
+
+    function updateTypingTextHighlight() {
+        let typedWords = typedText.split(' ');
+        let highlightedText = "";
+
+        typedWords.forEach((word, index) => {
+            if (word === correctWords[index]) {
+                highlightedText += `<span class="highlight">${word}</span> `;
+            } else {
+                highlightedText += `<span class="incorrect">${word}</span> `;
+            }
+        });
+
+        // Highlight the remaining untyped words
+        let remainingText = correctWords.slice(typedWords.length).map(word => `<span>${word}</span>`).join(' ');
+        document.getElementById('typingText').innerHTML = highlightedText + remainingText;
+    }
+
+    function submitTest() {
+        clearInterval(timerInterval);
+        let timeTakenInSeconds = (new Date().getTime() - startTime) / 1000;
+        let speed = Math.round((wordsTyped / timeTakenInSeconds) * 60); // Words per minute
+        let accuracy = Math.round((typedText.length / testText.length) * 100);
+
+        let resultText = `Speed: ${speed} WPM | Accuracy: ${accuracy}%`;
+
+        let finalText = testText.split(' ').map((word, index) => {
+            if (typedText.split(' ')[index] === word) {
+                return `<span class="highlight">${word}</span>`;
+            } else {
+                return `<span class="incorrect">${word}</span> <span class="correction">${typedText.split(' ')[index] || ''}</span>`;
+            }
+        }).join(' ');
+
+        document.getElementById('typingText').innerHTML = finalText;
+        document.getElementById('timer').textContent = `Test Complete! Speed: ${speed} WPM | Accuracy: ${accuracy}%`;
+        document.getElementById('submitBtn').style.display = "none"; // Hide submit button after test completion
+
+        let feedback = document.createElement("div");
+        feedback.className = "feedback";
+        feedback.textContent = resultText;
+        document.getElementById('result').appendChild(feedback);
+    }
+
+    function resetTest() {
+        // Reset test
+        document.getElementById('inputText').value = "";
+        document.getElementById('inputText').disabled = true;
+        document.getElementById('timer').textContent = "Time: 0s";
+        document.getElementById('typingText').innerHTML = `<p>${testText}</p>`;
+        document.getElementById('startBtn').style.display = "inline-block";
+        document.getElementById('submitBtn').style.display = "none";
+        document.getElementById('resetBtn').style.display = "none";
+        document.getElementById('result').innerHTML = "";
+        clearInterval(timerInterval);
+    }
+</script>
+
+</body>
+</html>
